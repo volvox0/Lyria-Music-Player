@@ -49,7 +49,7 @@
         }
 
         .hidden-view {
-            display: none;
+            display: none !important;
             opacity: 0;
             transform: translateY(20px);
         }
@@ -67,18 +67,47 @@
             transform: scale(0.98);
             background-color: rgba(56, 189, 248, 0.1);
         }
+
+        /* ミニプレイヤーのアニメーション */
+        #mini-player {
+            transition: transform 0.3s ease, opacity 0.3s ease;
+        }
+        .mini-player-hidden {
+            transform: translateY(100%);
+            opacity: 0;
+            pointer-events: none;
+        }
     </style>
 </head>
 <body class="min-h-screen flex items-center justify-center p-0 sm:p-4">
 
     <!-- 1. 楽曲リスト画面 (初期表示) -->
-    <div id="list-view" class="w-full max-w-md h-[100dvh] sm:h-[90vh] sm:max-h-[800px] flex flex-col p-6 overflow-hidden">
+    <div id="list-view" class="w-full max-w-md h-[100dvh] sm:h-[90vh] sm:max-h-[800px] flex flex-col p-6 overflow-hidden relative">
         <header class="mb-8 mt-4 text-center">
             <h1 class="text-4xl font-bold bg-gradient-to-r from-white to-slate-500 bg-clip-text text-transparent">Lyria Library</h1>
         </header>
 
-        <div id="home-song-list" class="flex-grow overflow-y-auto no-scrollbar space-y-4 pb-12">
+        <div id="home-song-list" class="flex-grow overflow-y-auto no-scrollbar space-y-4 pb-24">
             <!-- JSで楽曲リストを挿入 -->
+        </div>
+
+        <!-- ミニプレイヤー (リスト画面下部に常駐) -->
+        <div id="mini-player" class="mini-player-hidden absolute bottom-4 left-4 right-4 h-16 glass-morphism rounded-2xl flex items-center px-3 gap-3 shadow-2xl z-20 cursor-pointer overflow-hidden border border-white/10">
+            <!-- ミニ再生バー -->
+            <div id="mini-progress" class="absolute top-0 left-0 h-0.5 bg-sky-400" style="width: 0%"></div>
+            
+            <div class="w-10 h-10 rounded-lg overflow-hidden shrink-0 shadow-md">
+                <img id="mini-album-art" src="" alt="" class="w-full h-full object-cover">
+            </div>
+            <div class="flex-grow min-w-0" id="mini-info">
+                <div id="mini-song-title" class="font-bold text-sm truncate">楽曲タイトル</div>
+                <div id="mini-song-artist" class="text-[10px] text-slate-400 truncate">Artist</div>
+            </div>
+            <div class="flex items-center gap-1">
+                <button id="mini-play-pause" class="p-2 text-white active:scale-90 transition-transform">
+                    <i id="mini-play-icon" data-lucide="play" class="w-6 h-6 fill-current"></i>
+                </button>
+            </div>
         </div>
     </div>
 
@@ -194,6 +223,7 @@
         let isShuffle = false;
         let repeatMode = 0; // 0: None, 1: All, 2: One
         let lastVolume = 0.8;
+        let isSongLoaded = false;
         
         // --- 要素取得 ---
         const listView = document.getElementById('list-view');
@@ -219,6 +249,16 @@
         const currentTimeEl = document.getElementById('current-time');
         const durationEl = document.getElementById('total-duration');
         const downloadLink = document.getElementById('download-link');
+
+        // ミニプレイヤー要素
+        const miniPlayer = document.getElementById('mini-player');
+        const miniAlbumArt = document.getElementById('mini-album-art');
+        const miniSongTitle = document.getElementById('mini-song-title');
+        const miniSongArtist = document.getElementById('mini-song-artist');
+        const miniPlayPause = document.getElementById('mini-play-pause');
+        const miniPlayIcon = document.getElementById('mini-play-icon');
+        const miniProgress = document.getElementById('mini-progress');
+        const miniInfo = document.getElementById('mini-info');
 
         // --- 初期化 ---
         function initApp() {
@@ -252,6 +292,8 @@
             loadSong(currentIdx);
             showPlayer();
             audio.play();
+            isSongLoaded = true;
+            updateMiniPlayerVisibility();
         }
 
         // 画面切り替え: プレイヤーへ
@@ -273,7 +315,16 @@
             setTimeout(() => {
                 playerView.style.display = 'none';
                 listView.classList.remove('hidden');
+                updateMiniPlayerVisibility();
             }, 400);
+        }
+
+        function updateMiniPlayerVisibility() {
+            if (isSongLoaded && listView.offsetParent !== null) {
+                miniPlayer.classList.remove('mini-player-hidden');
+            } else {
+                miniPlayer.classList.add('mini-player-hidden');
+            }
         }
 
         // 楽曲読み込み
@@ -284,6 +335,11 @@
             albumArt.src = song.cover;
             audio.src = song.file;
             downloadLink.href = song.file;
+
+            // ミニプレイヤーの更新
+            miniSongTitle.innerText = song.title;
+            miniSongArtist.innerText = song.artist;
+            miniAlbumArt.src = song.cover;
             
             // 背景のグロー色を微かに変える演出
             const colors = ['bg-blue-600/20', 'bg-purple-600/20', 'bg-emerald-600/20'];
@@ -302,6 +358,7 @@
         audio.onplay = () => {
             isPlaying = true;
             playIcon.setAttribute('data-lucide', 'pause');
+            miniPlayIcon.setAttribute('data-lucide', 'pause');
             albumArt.classList.add('scale-105');
             lucide.createIcons();
         };
@@ -309,6 +366,7 @@
         audio.onpause = () => {
             isPlaying = false;
             playIcon.setAttribute('data-lucide', 'play');
+            miniPlayIcon.setAttribute('data-lucide', 'play');
             albumArt.classList.remove('scale-105');
             lucide.createIcons();
         };
@@ -358,6 +416,7 @@
             if (!isNaN(audio.duration)) {
                 const progress = (audio.currentTime / audio.duration) * 100;
                 seekSlider.value = progress;
+                miniProgress.style.width = progress + '%';
                 currentTimeEl.innerText = formatTime(audio.currentTime);
                 durationEl.innerText = formatTime(audio.duration);
             }
@@ -407,6 +466,7 @@
             } else {
                 isPlaying = false;
                 playIcon.setAttribute('data-lucide', 'play');
+                miniPlayIcon.setAttribute('data-lucide', 'play');
                 lucide.createIcons();
             }
         };
@@ -423,6 +483,16 @@
         nextBtn.addEventListener('click', nextSong);
         prevBtn.addEventListener('click', prevSong);
         backBtn.addEventListener('click', showList);
+
+        // ミニプレイヤーの操作
+        miniPlayPause.addEventListener('click', (e) => {
+            e.stopPropagation(); // プレイヤー画面への遷移を防止
+            togglePlay();
+        });
+        
+        miniPlayer.addEventListener('click', () => {
+            showPlayer();
+        });
 
         // キーボード操作
         document.addEventListener('keydown', (e) => {
