@@ -214,6 +214,24 @@
                 artist: "Gemini Lyria",
                 file: "Level_Up_Power_Off.MP3",
                 cover: "Level_Up_Power_Off.png"
+            },
+            {
+                title: "Gummy Physics",
+                artist: "Gemini Lyria",
+                file: "Gummy_Physics.mp3",
+                cover: "Gummy_Physics.png"
+            },
+            {
+                title: "Gearbox Joyride",
+                artist: "Gemini Lyria",
+                file: "Gearbox_Joyride.mp3",
+                cover: "Gearbox_Joyride.png"
+            },
+            {
+                title: "Assembly Line Rush",
+                artist: "Gemini Lyria",
+                file: "Assembly_Line_Rush.mp3",
+                cover: "Assembly_Line_Rush.png"
             }
         ];
 
@@ -342,7 +360,7 @@
             miniAlbumArt.src = song.cover;
             
             // 背景のグロー色を微かに変える演出
-            const colors = ['bg-blue-600/20', 'bg-purple-600/20', 'bg-emerald-600/20'];
+            const colors = ['bg-blue-600/20', 'bg-purple-600/20', 'bg-emerald-600/20', 'bg-amber-600/20', 'bg-indigo-600/20', 'bg-rose-600/20'];
             document.getElementById('bg-glow').className = `absolute -top-24 -left-24 w-64 h-64 ${colors[idx % colors.length]} rounded-full blur-[80px] pointer-events-none`;
         }
 
