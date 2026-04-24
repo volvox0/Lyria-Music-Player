@@ -4,307 +4,127 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Lyria Music Player</title>
-    
-    <!-- アプリアイコン設定 -->
-    <link rel="icon" href="音楽.jpg" type="image/jpeg">
-    <link rel="apple-touch-icon" href="音楽.jpg">
-    
+    <link rel="icon" href="images/音楽.jpg" type="image/jpeg">
+    <link rel="apple-touch-icon" href="images/音楽.jpg">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap');
-
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #0f172a;
-            color: #f8fafc;
-            user-select: none;
-            overflow-x: hidden;
-        }
-
-        .glass-morphism {
-            background: rgba(30, 41, 59, 0.7);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .slider-thumb::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            height: 12px;
-            width: 12px;
-            border-radius: 50%;
-            background: #38bdf8;
-            cursor: pointer;
-            box-shadow: 0 0 10px rgba(56, 189, 248, 0.5);
-        }
-
-        .active-icon {
-            color: #38bdf8;
-            filter: drop-shadow(0 0 5px rgba(56, 189, 248, 0.8));
-        }
-
-        /* 画面遷移アニメーション */
-        .view-transition {
-            transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.4s ease;
-        }
-
-        .hidden-view {
-            display: none !important;
-            opacity: 0;
-            transform: translateY(20px);
-        }
-
-        /* プレイリストのスクロールバー隠し */
-        .no-scrollbar::-webkit-scrollbar {
-            display: none;
-        }
-        .no-scrollbar {
-            -ms-overflow-style: none;
-            scrollbar-width: none;
-        }
-
-        .song-item:active {
-            transform: scale(0.98);
-            background-color: rgba(56, 189, 248, 0.1);
-        }
-
-        /* ミニプレイヤーのアニメーション */
-        #mini-player {
-            transition: transform 0.3s ease, opacity 0.3s ease;
-        }
-        .mini-player-hidden {
-            transform: translateY(100%);
-            opacity: 0;
-            pointer-events: none;
-        }
+        body { font-family: 'Inter', sans-serif; background-color: #0f172a; color: #f8fafc; user-select: none; overflow-x: hidden; }
+        .glass-morphism { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.1); }
+        .slider-thumb::-webkit-slider-thumb { -webkit-appearance: none; height: 12px; width: 12px; border-radius: 50%; background: #38bdf8; cursor: pointer; box-shadow: 0 0 10px rgba(56, 189, 248, 0.5); }
+        .active-icon { color: #38bdf8; filter: drop-shadow(0 0 5px rgba(56, 189, 248, 0.8)); }
+        .view-transition { transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.4s ease; }
+        .hidden-view { display: none !important; opacity: 0; transform: translateY(20px); }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        .song-item:active { transform: scale(0.98); background-color: rgba(56, 189, 248, 0.1); }
+        #mini-player { transition: transform 0.3s ease, opacity 0.3s ease; }
+        .mini-player-hidden { transform: translateY(100%); opacity: 0; pointer-events: none; }
     </style>
 </head>
 <body class="min-h-screen flex items-center justify-center p-0 sm:p-4">
-
-    <!-- 1. 楽曲リスト画面 (初期表示) -->
     <div id="list-view" class="w-full max-w-md h-[100dvh] sm:h-[90vh] sm:max-h-[800px] flex flex-col p-6 overflow-hidden relative">
         <header class="mb-8 mt-4 text-center">
             <h1 class="text-4xl font-bold bg-gradient-to-r from-white to-slate-500 bg-clip-text text-transparent">Lyria Library</h1>
         </header>
-
-        <div id="home-song-list" class="flex-grow overflow-y-auto no-scrollbar space-y-4 pb-24">
-            <!-- JSで楽曲リストを挿入 -->
-        </div>
-
-        <!-- ミニプレイヤー (リスト画面下部に常駐) -->
+        <div id="home-song-list" class="flex-grow overflow-y-auto no-scrollbar space-y-4 pb-24"></div>
         <div id="mini-player" class="mini-player-hidden absolute bottom-4 left-4 right-4 h-16 glass-morphism rounded-2xl flex items-center px-3 gap-3 shadow-2xl z-20 cursor-pointer overflow-hidden border border-white/10">
-            <!-- ミニ再生バー -->
             <div id="mini-progress" class="absolute top-0 left-0 h-0.5 bg-sky-400" style="width: 0%"></div>
-            
             <div class="w-10 h-10 rounded-lg overflow-hidden shrink-0 shadow-md">
-                <img id="mini-album-art" src="" alt="" class="w-full h-full object-cover">
+                <img id="mini-album-art" src="" class="w-full h-full object-cover">
             </div>
-            <div class="flex-grow min-w-0" id="mini-info">
-                <div id="mini-song-title" class="font-bold text-sm truncate">楽曲タイトル</div>
-                <div id="mini-song-artist" class="text-[10px] text-slate-400 truncate">Artist</div>
+            <div class="flex-grow min-w-0">
+                <div id="mini-song-title" class="font-bold text-sm truncate"></div>
+                <div id="mini-song-artist" class="text-[10px] text-slate-400 truncate"></div>
             </div>
-            <div class="flex items-center gap-1">
-                <button id="mini-play-pause" class="p-2 text-white active:scale-90 transition-transform">
-                    <i id="mini-play-icon" data-lucide="play" class="w-6 h-6 fill-current"></i>
-                </button>
-            </div>
+            <button id="mini-play-pause" class="p-2 text-white active:scale-90">
+                <i id="mini-play-icon" data-lucide="play" class="w-6 h-6 fill-current"></i>
+            </button>
         </div>
     </div>
 
-    <!-- 2. プレイヤー画面 (曲選択時に表示) -->
     <div id="player-view" class="hidden-view w-full max-w-md flex flex-col h-[100dvh] sm:h-[90vh] sm:max-h-[840px] glass-morphism sm:rounded-[2.5rem] shadow-2xl pt-6 px-6 pb-8 relative overflow-hidden justify-between">
-        
-        <!-- 背景のぼかし装飾 -->
         <div id="bg-glow" class="absolute -top-24 -left-24 w-64 h-64 bg-blue-600/20 rounded-full blur-[80px] pointer-events-none"></div>
         <div id="bg-glow-2" class="absolute -bottom-24 -right-24 w-64 h-64 bg-purple-600/20 rounded-full blur-[80px] pointer-events-none"></div>
-
-        <!-- プレイヤーヘッダー -->
         <div class="flex justify-between items-center z-10 mb-2">
             <button id="back-to-list" class="p-2 text-slate-300 hover:text-white transition-colors">
                 <i data-lucide="chevron-left" class="w-8 h-8"></i>
             </button>
             <span class="text-[10px] uppercase tracking-[0.2em] text-slate-400 font-bold">Now Playing</span>
-            <div class="w-10"></div> <!-- バランス用 -->
+            <div class="w-10"></div>
         </div>
-
-        <!-- 楽曲情報表示 -->
         <div class="flex flex-col items-center flex-1 justify-center min-h-0">
-            <div id="album-art-container" class="w-full max-w-[320px] aspect-square rounded-3xl overflow-hidden shadow-2xl mb-6 border border-white/5 transition-all">
-                <img id="album-art" src="Sugar_In_My_Tea.png" alt="Album Art" class="w-full h-full object-cover transition-all duration-700 transform scale-100" onerror="this.src='https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?q=80&w=500&auto=format&fit=crop'">
+            <div class="w-full max-w-[320px] aspect-square rounded-3xl overflow-hidden shadow-2xl mb-6 border border-white/5">
+                <img id="album-art" src="" class="w-full h-full object-cover transition-all duration-700 transform scale-100">
             </div>
-            
             <div class="w-full text-center mb-4">
-                <h2 id="song-title" class="text-2xl font-bold truncate px-4">楽曲タイトル</h2>
-                <p id="song-artist" class="text-slate-400 text-sm mt-1 uppercase tracking-widest">Generated by Gemini Lyria</p>
+                <h2 id="song-title" class="text-2xl font-bold truncate px-4"></h2>
+                <p id="song-artist" class="text-slate-400 text-sm mt-1 uppercase tracking-widest"></p>
             </div>
         </div>
-
-        <!-- コントロールセクション -->
         <div class="w-full space-y-6 z-10 mt-auto">
-            <!-- シークバー -->
             <div class="w-full">
                 <input type="range" id="seek-slider" value="0" step="0.1" class="w-full h-1 bg-slate-700 rounded-lg appearance-none cursor-pointer slider-thumb accent-sky-400">
-                <div class="flex justify-between text-[10px] text-slate-500 mt-2 font-mono uppercase tracking-widest">
+                <div class="flex justify-between text-[10px] text-slate-500 mt-2 font-mono tracking-widest">
                     <span id="current-time">0:00</span>
                     <span id="total-duration">0:00</span>
                 </div>
             </div>
-
-            <!-- コントロールボタン -->
             <div class="w-full flex items-center justify-between px-2">
-                <button id="shuffle-btn" class="p-2 text-slate-400 transition-all active:scale-90">
-                    <i data-lucide="shuffle" class="w-5 h-5"></i>
-                </button>
-                
+                <button id="shuffle-btn" class="p-2 text-slate-400 active:scale-90"><i data-lucide="shuffle" class="w-5 h-5"></i></button>
                 <div class="flex items-center gap-6">
-                    <button id="prev-btn" class="p-2 text-white transition-all hover:text-sky-400 active:scale-90">
-                        <i data-lucide="skip-back" class="w-8 h-8 fill-current"></i>
-                    </button>
-                    
-                    <button id="play-pause-btn" class="w-16 h-16 bg-white text-slate-950 rounded-full flex items-center justify-center shadow-lg transition-all hover:scale-105 active:scale-95">
+                    <button id="prev-btn" class="p-2 text-white active:scale-90"><i data-lucide="skip-back" class="w-8 h-8 fill-current"></i></button>
+                    <button id="play-pause-btn" class="w-16 h-16 bg-white text-slate-950 rounded-full flex items-center justify-center shadow-lg active:scale-95">
                         <i id="play-icon" data-lucide="play" class="w-8 h-8 fill-current ml-1"></i>
                     </button>
-                    
-                    <button id="next-btn" class="p-2 text-white transition-all hover:text-sky-400 active:scale-90">
-                        <i data-lucide="skip-forward" class="w-8 h-8 fill-current"></i>
-                    </button>
+                    <button id="next-btn" class="p-2 text-white active:scale-90"><i data-lucide="skip-forward" class="w-8 h-8 fill-current"></i></button>
                 </div>
-
-                <button id="repeat-btn" class="p-2 text-slate-400 transition-all active:scale-90">
-                    <i id="repeat-icon" data-lucide="repeat" class="w-5 h-5"></i>
-                </button>
+                <button id="repeat-btn" class="p-2 text-slate-400 active:scale-90"><i id="repeat-icon" data-lucide="repeat" class="w-5 h-5"></i></button>
             </div>
-
-            <!-- 下部アクション (音量調整) -->
             <div class="flex items-center justify-between w-full px-2 gap-4 pb-2">
                 <div class="flex items-center gap-3 flex-1">
-                    <button id="mute-toggle" class="p-1 text-slate-500 hover:text-sky-400 transition-colors shrink-0">
-                        <i id="volume-icon" data-lucide="volume-2" class="w-5 h-5"></i>
-                    </button>
-                    <input type="range" id="volume-slider" min="0" max="1" step="0.01" value="0.8" class="w-full h-1 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-sky-400">
+                    <button id="mute-toggle" class="text-slate-500"><i id="volume-icon" data-lucide="volume-2" class="w-5 h-5"></i></button>
+                    <input type="range" id="volume-slider" min="0" max="1" step="0.01" value="0.8" class="w-full h-1 bg-slate-700 rounded-lg appearance-none accent-sky-400">
                 </div>
-                
-                <a id="download-link" href="#" download class="p-2 text-slate-400 hover:text-white transition-colors shrink-0" title="ダウンロード">
-                    <i data-lucide="download" class="w-5 h-5"></i>
-                </a>
+                <a id="download-link" href="#" download class="p-2 text-slate-400"><i data-lucide="download" class="w-5 h-5"></i></a>
             </div>
         </div>
     </div>
-
-    <!-- 音声タグ -->
-    <audio id="audio-element"></audio>
+    <audio id="audio-element" preload="auto"></audio>
 
     <script>
-        // --- 楽曲データ設定 ---
         const songs = [
-            {
-                title: "Sugar In My Tea",
-                artist: "Gemini Lyria",
-                file: "Sugar_In_My_Tea.MP3",
-                cover: "Sugar_In_My_Tea.png"
-            },
-            {
-                title: "Token of Victory",
-                artist: "Gemini Lyria",
-                file: "Token_of_Victory.MP3",
-                cover: "Token_of_Victory.png"
-            },
-            {
-                title: "Level Up Power Off",
-                artist: "Gemini Lyria",
-                file: "Level_Up_Power_Off.MP3",
-                cover: "Level_Up_Power_Off.png"
-            },
-            {
-                title: "Gummy Physics",
-                artist: "Gemini Lyria",
-                file: "Gummy_Physics.mp3",
-                cover: "Gummy_Physics.png"
-            },
-            {
-                title: "Gearbox Joyride",
-                artist: "Gemini Lyria",
-                file: "Gearbox_Joyride.mp3",
-                cover: "Gearbox_Joyride.png"
-            },
-            {
-                title: "Assembly Line Rush",
-                artist: "Gemini Lyria",
-                file: "Assembly_Line_Rush.mp3",
-                cover: "Assembly_Line_Rush.png"
-            }
+            { title: "Sugar In My Tea", artist: "Gemini Lyria", file: "Sugar_In_My_Tea.MP3", cover: "images/Sugar_In_My_Tea.png" },
+            { title: "Token of Victory", artist: "Gemini Lyria", file: "Token_of_Victory.MP3", cover: "images/Token_of_Victory.png" },
+            { title: "Level Up Power Off", artist: "Gemini Lyria", file: "Level_Up_Power_Off.MP3", cover: "images/Level_Up_Power_Off.png" },
+            { title: "Gummy Physics", artist: "Gemini Lyria", file: "Gummy_Physics.mp3", cover: "images/Gummy_Physics.png" },
+            { title: "Gearbox Joyride", artist: "Gemini Lyria", file: "Gearbox_Joyride.mp3", cover: "images/Gearbox_Joyride.png" },
+            { title: "Assembly Line Rush", artist: "Gemini Lyria", file: "Assembly_Line_Rush.mp3", cover: "images/Assembly_Line_Rush.png" }
         ];
 
-        // --- 状態管理 ---
-        let currentIdx = 0;
-        let isPlaying = false;
-        let isShuffle = false;
-        let repeatMode = 0; // 0: None, 1: All, 2: One
-        let lastVolume = 0.8;
-        let isSongLoaded = false;
-        
-        // --- 要素取得 ---
-        const listView = document.getElementById('list-view');
-        const playerView = document.getElementById('player-view');
-        const homeSongList = document.getElementById('home-song-list');
-        const backBtn = document.getElementById('back-to-list');
+        let currentIdx = 0, isPlaying = false, isShuffle = false, repeatMode = 0, lastVolume = 0.8, isSongLoaded = false;
+        const audio = document.getElementById('audio-element'), playPauseBtn = document.getElementById('play-pause-btn'), playIcon = document.getElementById('play-icon');
+        const miniPlayPause = document.getElementById('mini-play-pause'), miniPlayIcon = document.getElementById('mini-play-icon'), seekSlider = document.getElementById('seek-slider');
+        const volumeSlider = document.getElementById('volume-slider'), volumeIcon = document.getElementById('volume-icon'), miniPlayer = document.getElementById('mini-player');
 
-        const audio = document.getElementById('audio-element');
-        const playPauseBtn = document.getElementById('play-pause-btn');
-        const playIcon = document.getElementById('play-icon');
-        const prevBtn = document.getElementById('prev-btn');
-        const nextBtn = document.getElementById('next-btn');
-        const shuffleBtn = document.getElementById('shuffle-btn');
-        const repeatBtn = document.getElementById('repeat-btn');
-        const repeatIcon = document.getElementById('repeat-icon');
-        const seekSlider = document.getElementById('seek-slider');
-        const volumeSlider = document.getElementById('volume-slider');
-        const volumeIcon = document.getElementById('volume-icon');
-        const muteToggle = document.getElementById('mute-toggle');
-        const songTitle = document.getElementById('song-title');
-        const songArtist = document.getElementById('song-artist');
-        const albumArt = document.getElementById('album-art');
-        const currentTimeEl = document.getElementById('current-time');
-        const durationEl = document.getElementById('total-duration');
-        const downloadLink = document.getElementById('download-link');
-
-        // ミニプレイヤー要素
-        const miniPlayer = document.getElementById('mini-player');
-        const miniAlbumArt = document.getElementById('mini-album-art');
-        const miniSongTitle = document.getElementById('mini-song-title');
-        const miniSongArtist = document.getElementById('mini-song-artist');
-        const miniPlayPause = document.getElementById('mini-play-pause');
-        const miniPlayIcon = document.getElementById('mini-play-icon');
-        const miniProgress = document.getElementById('mini-progress');
-        const miniInfo = document.getElementById('mini-info');
-
-        // --- 初期化 ---
         function initApp() {
             renderHomeList();
             lucide.createIcons();
-            loadSong(currentIdx, false); // 初期化時は再生しない
+            loadSong(currentIdx);
+            setupMediaSession();
         }
 
-        // ホームリストの描画
         function renderHomeList() {
-            homeSongList.innerHTML = songs.map((song, i) => `
+            document.getElementById('home-song-list').innerHTML = songs.map((s, i) => `
                 <div class="song-item p-4 rounded-2xl glass-morphism border border-white/5 flex items-center gap-4 cursor-pointer transition-all hover:bg-white/5" onclick="playSongFromList(${i})">
-                    <div class="relative">
-                        <img src="${song.cover}" class="w-14 h-14 rounded-xl object-cover shadow-lg" onerror="this.src='https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?w=100'">
-                    </div>
-                    <div class="flex-grow min-w-0">
-                        <div class="font-bold truncate text-lg">${song.title}</div>
-                        <div class="text-xs text-slate-400 uppercase tracking-wider">${song.artist}</div>
-                    </div>
-                    <div class="text-sky-400">
-                        <i data-lucide="play" class="w-6 h-6 fill-current"></i>
-                    </div>
-                </div>
-            `).join('');
+                    <div class="relative"><img src="${s.cover}" class="w-14 h-14 rounded-xl object-cover shadow-lg" onerror="this.src='https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?w=100'"></div>
+                    <div class="flex-grow min-w-0"><div class="font-bold truncate text-lg">${s.title}</div><div class="text-xs text-slate-400 uppercase">${s.artist}</div></div>
+                    <div class="text-sky-400"><i data-lucide="play" class="w-6 h-6 fill-current"></i></div>
+                </div>`).join('');
             lucide.createIcons();
         }
 
-        // リストから曲を選択して再生
         function playSongFromList(idx) {
             currentIdx = idx;
             loadSong(currentIdx);
@@ -314,217 +134,137 @@
             updateMiniPlayerVisibility();
         }
 
-        // 画面切り替え: プレイヤーへ
         function showPlayer() {
-            listView.classList.add('hidden');
-            playerView.classList.remove('hidden-view');
-            playerView.style.display = 'flex';
-            setTimeout(() => {
-                playerView.classList.add('view-transition');
-                playerView.style.opacity = '1';
-                playerView.style.transform = 'translateY(0)';
-            }, 50);
+            document.getElementById('list-view').classList.add('hidden');
+            const pv = document.getElementById('player-view');
+            pv.classList.remove('hidden-view');
+            pv.style.display = 'flex';
+            setTimeout(() => { pv.classList.add('view-transition'); pv.style.opacity = '1'; pv.style.transform = 'translateY(0)'; }, 50);
         }
 
-        // 画面切り替え: リストへ
         function showList() {
-            playerView.style.opacity = '0';
-            playerView.style.transform = 'translateY(20px)';
-            setTimeout(() => {
-                playerView.style.display = 'none';
-                listView.classList.remove('hidden');
-                updateMiniPlayerVisibility();
-            }, 400);
+            const pv = document.getElementById('player-view');
+            pv.style.opacity = '0'; pv.style.transform = 'translateY(20px)';
+            setTimeout(() => { pv.style.display = 'none'; document.getElementById('list-view').classList.remove('hidden'); updateMiniPlayerVisibility(); }, 400);
         }
 
         function updateMiniPlayerVisibility() {
-            if (isSongLoaded && listView.offsetParent !== null) {
-                miniPlayer.classList.remove('mini-player-hidden');
-            } else {
-                miniPlayer.classList.add('mini-player-hidden');
+            if (isSongLoaded && document.getElementById('list-view').offsetParent !== null) miniPlayer.classList.remove('mini-player-hidden');
+            else miniPlayer.classList.add('mini-player-hidden');
+        }
+
+        function loadSong(idx) {
+            const s = songs[idx];
+            document.getElementById('song-title').innerText = s.title;
+            document.getElementById('song-artist').innerText = s.artist;
+            document.getElementById('album-art').src = s.cover;
+            audio.src = s.file;
+            document.getElementById('download-link').href = s.file;
+            document.getElementById('mini-song-title').innerText = s.title;
+            document.getElementById('mini-song-artist').innerText = s.artist;
+            document.getElementById('mini-album-art').src = s.cover;
+            const clr = ['bg-blue-600/20', 'bg-purple-600/20', 'bg-emerald-600/20', 'bg-amber-600/20', 'bg-indigo-600/20', 'bg-rose-600/20'];
+            document.getElementById('bg-glow').className = `absolute -top-24 -left-24 w-64 h-64 ${clr[idx % clr.length]} rounded-full blur-[80px] pointer-events-none`;
+            updateMediaMetadata(s);
+        }
+
+        function setupMediaSession() {
+            if ('mediaSession' in navigator) {
+                navigator.mediaSession.setActionHandler('play', () => audio.play());
+                navigator.mediaSession.setActionHandler('pause', () => audio.pause());
+                navigator.mediaSession.setActionHandler('previoustrack', prevSong);
+                navigator.mediaSession.setActionHandler('nexttrack', nextSong);
             }
         }
 
-        // 楽曲読み込み
-        function loadSong(idx, shouldPlay = true) {
-            const song = songs[idx];
-            songTitle.innerText = song.title;
-            songArtist.innerText = song.artist;
-            albumArt.src = song.cover;
-            audio.src = song.file;
-            downloadLink.href = song.file;
-
-            // ミニプレイヤーの更新
-            miniSongTitle.innerText = song.title;
-            miniSongArtist.innerText = song.artist;
-            miniAlbumArt.src = song.cover;
-            
-            // 背景のグロー色を微かに変える演出
-            const colors = ['bg-blue-600/20', 'bg-purple-600/20', 'bg-emerald-600/20', 'bg-amber-600/20', 'bg-indigo-600/20', 'bg-rose-600/20'];
-            document.getElementById('bg-glow').className = `absolute -top-24 -left-24 w-64 h-64 ${colors[idx % colors.length]} rounded-full blur-[80px] pointer-events-none`;
-        }
-
-        // 再生・一時停止
-        function togglePlay() {
-            if (isPlaying) {
-                audio.pause();
-            } else {
-                audio.play();
+        function updateMediaMetadata(s) {
+            if ('mediaSession' in navigator) {
+                navigator.mediaSession.metadata = new MediaMetadata({ title: s.title, artist: s.artist, album: "Lyria Library", artwork: [{ src: s.cover, sizes: '512x512', type: 'image/png' }] });
             }
         }
+
+        function togglePlay() { isPlaying ? audio.pause() : audio.play(); }
 
         audio.onplay = () => {
             isPlaying = true;
             playIcon.setAttribute('data-lucide', 'pause');
             miniPlayIcon.setAttribute('data-lucide', 'pause');
-            albumArt.classList.add('scale-105');
+            document.getElementById('album-art').classList.add('scale-105');
             lucide.createIcons();
+            if ('mediaSession' in navigator) navigator.mediaSession.playbackState = "playing";
         };
 
         audio.onpause = () => {
             isPlaying = false;
             playIcon.setAttribute('data-lucide', 'play');
             miniPlayIcon.setAttribute('data-lucide', 'play');
-            albumArt.classList.remove('scale-105');
+            document.getElementById('album-art').classList.remove('scale-105');
             lucide.createIcons();
+            if ('mediaSession' in navigator) navigator.mediaSession.playbackState = "paused";
         };
 
-        // 次の曲
         function nextSong() {
-            if (isShuffle) {
-                currentIdx = Math.floor(Math.random() * songs.length);
-            } else {
-                currentIdx = (currentIdx + 1) % songs.length;
-            }
+            currentIdx = isShuffle ? Math.floor(Math.random() * songs.length) : (currentIdx + 1) % songs.length;
             loadSong(currentIdx);
             audio.play();
         }
 
-        // 前の曲
         function prevSong() {
             currentIdx = (currentIdx - 1 + songs.length) % songs.length;
             loadSong(currentIdx);
             audio.play();
         }
 
-        // シャッフル切り替え
-        shuffleBtn.addEventListener('click', () => {
-            isShuffle = !isShuffle;
-            shuffleBtn.classList.toggle('active-icon', isShuffle);
-        });
-
-        // リピート切り替え
-        repeatBtn.addEventListener('click', () => {
+        document.getElementById('shuffle-btn').onclick = () => { isShuffle = !isShuffle; document.getElementById('shuffle-btn').classList.toggle('active-icon', isShuffle); };
+        document.getElementById('repeat-btn').onclick = () => {
             repeatMode = (repeatMode + 1) % 3;
-            if (repeatMode === 0) {
-                repeatBtn.classList.remove('active-icon');
-                repeatIcon.setAttribute('data-lucide', 'repeat');
-            } else if (repeatMode === 1) {
-                repeatBtn.classList.add('active-icon');
-                repeatIcon.setAttribute('data-lucide', 'repeat');
-            } else {
-                repeatBtn.classList.add('active-icon');
-                repeatIcon.setAttribute('data-lucide', 'repeat-1');
-            }
+            const ri = document.getElementById('repeat-icon'), rb = document.getElementById('repeat-btn');
+            if (repeatMode === 0) { rb.classList.remove('active-icon'); ri.setAttribute('data-lucide', 'repeat'); }
+            else if (repeatMode === 1) { rb.classList.add('active-icon'); ri.setAttribute('data-lucide', 'repeat'); }
+            else { rb.classList.add('active-icon'); ri.setAttribute('data-lucide', 'repeat-1'); }
             lucide.createIcons();
-        });
+        };
 
-        // シークバー更新
         audio.ontimeupdate = () => {
             if (!isNaN(audio.duration)) {
-                const progress = (audio.currentTime / audio.duration) * 100;
-                seekSlider.value = progress;
-                miniProgress.style.width = progress + '%';
-                currentTimeEl.innerText = formatTime(audio.currentTime);
-                durationEl.innerText = formatTime(audio.duration);
+                const p = (audio.currentTime / audio.duration) * 100;
+                seekSlider.value = p;
+                document.getElementById('mini-progress').style.width = p + '%';
+                document.getElementById('current-time').innerText = formatTime(audio.currentTime);
+                document.getElementById('total-duration').innerText = formatTime(audio.duration);
             }
         };
 
-        seekSlider.oninput = () => {
-            const time = (seekSlider.value / 100) * audio.duration;
-            audio.currentTime = time;
-        };
-
-        // 音量調節
-        function updateVolumeUI(vol) {
-            audio.volume = vol;
-            volumeSlider.value = vol;
-            if (vol == 0) {
-                volumeIcon.setAttribute('data-lucide', 'volume-x');
-            } else if (vol < 0.5) {
-                volumeIcon.setAttribute('data-lucide', 'volume-1');
-            } else {
-                volumeIcon.setAttribute('data-lucide', 'volume-2');
-            }
-            lucide.createIcons();
-        }
-
+        seekSlider.oninput = () => { audio.currentTime = (seekSlider.value / 100) * audio.duration; };
         volumeSlider.oninput = () => {
-            updateVolumeUI(volumeSlider.value);
-            if (volumeSlider.value > 0) lastVolume = volumeSlider.value;
+            const v = volumeSlider.value; audio.volume = v;
+            if (v == 0) volumeIcon.setAttribute('data-lucide', 'volume-x');
+            else if (v < 0.5) volumeIcon.setAttribute('data-lucide', 'volume-1');
+            else volumeIcon.setAttribute('data-lucide', 'volume-2');
+            if (v > 0) lastVolume = v;
+            lucide.createIcons();
         };
 
-        // ミュート切り替え
-        muteToggle.addEventListener('click', () => {
-            if (audio.volume > 0) {
-                lastVolume = audio.volume;
-                updateVolumeUI(0);
-            } else {
-                updateVolumeUI(lastVolume || 0.8);
-            }
-        });
+        document.getElementById('mute-toggle').onclick = () => {
+            if (audio.volume > 0) { lastVolume = audio.volume; audio.volume = 0; volumeSlider.value = 0; volumeIcon.setAttribute('data-lucide', 'volume-x'); }
+            else { audio.volume = lastVolume; volumeSlider.value = lastVolume; volumeIcon.setAttribute('data-lucide', 'volume-2'); }
+            lucide.createIcons();
+        };
 
-        // 曲終了時
         audio.onended = () => {
-            if (repeatMode === 2) {
-                audio.currentTime = 0;
-                audio.play();
-            } else if (repeatMode === 1 || currentIdx < songs.length - 1) {
-                nextSong();
-            } else {
-                isPlaying = false;
-                playIcon.setAttribute('data-lucide', 'play');
-                miniPlayIcon.setAttribute('data-lucide', 'play');
-                lucide.createIcons();
-            }
+            if (repeatMode === 2) { audio.currentTime = 0; audio.play(); }
+            else if (repeatMode === 1 || currentIdx < songs.length - 1) nextSong();
+            else { isPlaying = false; playIcon.setAttribute('data-lucide', 'play'); miniPlayIcon.setAttribute('data-lucide', 'play'); lucide.createIcons(); }
         };
 
-        // 時間フォーマット
-        function formatTime(sec) {
-            const m = Math.floor(sec / 60);
-            const s = Math.floor(sec % 60);
-            return `${m}:${s < 10 ? '0' : ''}${s}`;
-        }
-
-        // イベントリスナー
-        playPauseBtn.addEventListener('click', togglePlay);
-        nextBtn.addEventListener('click', nextSong);
-        prevBtn.addEventListener('click', prevSong);
-        backBtn.addEventListener('click', showList);
-
-        // ミニプレイヤーの操作
-        miniPlayPause.addEventListener('click', (e) => {
-            e.stopPropagation(); // プレイヤー画面への遷移を防止
-            togglePlay();
-        });
-        
-        miniPlayer.addEventListener('click', () => {
-            showPlayer();
-        });
-
-        // キーボード操作
-        document.addEventListener('keydown', (e) => {
-            if (e.code === 'Space') {
-                e.preventDefault();
-                togglePlay();
-            }
-            if (e.code === 'ArrowRight') nextSong();
-            if (e.code === 'ArrowLeft') prevSong();
-            if (e.code === 'Escape') showList();
-        });
-
+        function formatTime(s) { const m = Math.floor(s / 60), sc = Math.floor(s % 60); return `${m}:${sc < 10 ? '0' : ''}${sc}`; }
+        playPauseBtn.onclick = togglePlay;
+        document.getElementById('next-btn').onclick = nextSong;
+        document.getElementById('prev-btn').onclick = prevSong;
+        document.getElementById('back-to-list').onclick = showList;
+        miniPlayPause.onclick = (e) => { e.stopPropagation(); togglePlay(); };
+        miniPlayer.onclick = showPlayer;
         window.onload = initApp;
-
     </script>
 </body>
 </html>
