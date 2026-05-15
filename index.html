@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Lyria Music Player</title>
     <link rel="icon" href="images/音楽.jpg" type="image/jpeg">
     <link rel="apple-touch-icon" href="images/音楽.jpg">
@@ -10,10 +10,11 @@
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap');
-        body { font-family: 'Inter', sans-serif; background-color: #0f172a; color: #f8fafc; user-select: none; overflow-x: hidden; }
+        html, body { overscroll-behavior: none; overflow: hidden; height: 100%; width: 100%; position: fixed; }
+        body { font-family: 'Inter', sans-serif; background-color: #0f172a; color: #f8fafc; user-select: none; }
         .glass-morphism { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.1); }
         .slider-thumb::-webkit-slider-thumb { -webkit-appearance: none; height: 12px; width: 12px; border-radius: 50%; background: #38bdf8; cursor: pointer; box-shadow: 0 0 10px rgba(56, 189, 248, 0.5); }
-        .active-icon { color: #38bdf8; filter: drop-shadow(0 0 5px rgba(56, 189, 248, 0.8)); }
+        .active-icon { color: #00f2ff !important; filter: drop-shadow(0 0 12px rgba(0, 242, 255, 1)); transform: scale(1.1); }
         .view-transition { transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.4s ease; }
         .hidden-view { display: none !important; opacity: 0; transform: translateY(20px); }
         .no-scrollbar::-webkit-scrollbar { display: none; }
@@ -21,13 +22,18 @@
         .song-item:active { transform: scale(0.98); background-color: rgba(56, 189, 248, 0.1); }
         #mini-player { transition: transform 0.3s ease, opacity 0.3s ease; }
         .mini-player-hidden { transform: translateY(100%); opacity: 0; pointer-events: none; }
+        .tab-active { background: rgba(56, 189, 248, 0.2); color: #38bdf8; border-color: rgba(56, 189, 248, 0.5); }
     </style>
 </head>
 <body class="min-h-screen flex items-center justify-center p-0 sm:p-4">
-    <div id="list-view" class="w-full max-w-md h-[100dvh] sm:h-[90vh] sm:max-h-[800px] flex flex-col p-6 overflow-hidden relative">
-        <header class="mb-8 mt-4 text-center">
+    <div id="list-view" class="w-full max-w-md h-full sm:h-[90vh] sm:max-h-[800px] flex flex-col p-6 overflow-hidden relative">
+        <header class="mb-6 mt-4 text-center">
             <h1 class="text-4xl font-bold bg-gradient-to-r from-white to-slate-500 bg-clip-text text-transparent">Lyria Library</h1>
         </header>
+        <div class="flex gap-2 mb-6 px-1">
+            <button onclick="switchTab('inst')" id="tab-inst" class="flex-1 py-2 rounded-xl border border-white/10 text-sm font-semibold transition-all">インスト</button>
+            <button onclick="switchTab('vocal')" id="tab-vocal" class="flex-1 py-2 rounded-xl border border-white/10 text-sm font-semibold transition-all">ボーカル</button>
+        </div>
         <div id="home-song-list" class="flex-grow overflow-y-auto no-scrollbar space-y-4 pb-24"></div>
         <div id="mini-player" class="mini-player-hidden absolute bottom-4 left-4 right-4 h-16 glass-morphism rounded-2xl flex items-center px-3 gap-3 shadow-2xl z-20 cursor-pointer overflow-hidden border border-white/10">
             <div id="mini-progress" class="absolute top-0 left-0 h-0.5 bg-sky-400" style="width: 0%"></div>
@@ -38,13 +44,13 @@
                 <div id="mini-song-title" class="font-bold text-sm truncate"></div>
                 <div id="mini-song-artist" class="text-[10px] text-slate-400 truncate"></div>
             </div>
-            <button id="mini-play-pause" class="p-2 text-white active:scale-90">
+            <button id="mini-play-pause" class="p-2 text-white active:scale-90 transition-all active-icon">
                 <i id="mini-play-icon" data-lucide="play" class="w-6 h-6 fill-current"></i>
             </button>
         </div>
     </div>
 
-    <div id="player-view" class="hidden-view w-full max-w-md flex flex-col h-[100dvh] sm:h-[90vh] sm:max-h-[840px] glass-morphism sm:rounded-[2.5rem] shadow-2xl pt-6 px-6 pb-8 relative overflow-hidden justify-between">
+    <div id="player-view" class="hidden-view w-full max-w-md flex flex-col h-full sm:h-[90vh] sm:max-h-[840px] glass-morphism sm:rounded-[2.5rem] shadow-2xl pt-6 px-6 pb-8 relative overflow-hidden justify-between">
         <div id="bg-glow" class="absolute -top-24 -left-24 w-64 h-64 bg-blue-600/20 rounded-full blur-[80px] pointer-events-none"></div>
         <div id="bg-glow-2" class="absolute -bottom-24 -right-24 w-64 h-64 bg-purple-600/20 rounded-full blur-[80px] pointer-events-none"></div>
         <div class="flex justify-between items-center z-10 mb-2">
@@ -55,7 +61,7 @@
             <div class="w-10"></div>
         </div>
         <div class="flex flex-col items-center flex-1 justify-center min-h-0">
-            <div id="album-art-container" class="w-full max-w-[340px] aspect-square rounded-3xl overflow-hidden shadow-2xl mb-6 border border-white/5 relative">
+            <div id="album-art-container" class="w-full max-w-[320px] aspect-square rounded-3xl overflow-hidden shadow-2xl mb-6 border border-white/5 relative">
                 <img id="album-art" src="" class="w-full h-full object-cover transition-all duration-700 transform scale-100">
             </div>
             <div class="w-full text-center mb-4">
@@ -72,15 +78,15 @@
                 </div>
             </div>
             <div class="w-full flex items-center justify-between px-2">
-                <button id="shuffle-btn" class="p-2 text-slate-400 active:scale-90"><i data-lucide="shuffle" class="w-5 h-5"></i></button>
+                <button id="shuffle-btn" class="p-2 text-slate-400 transition-all active:scale-95"><i data-lucide="shuffle" class="w-5 h-5"></i></button>
                 <div class="flex items-center gap-6">
                     <button id="prev-btn" class="p-2 text-white active:scale-90"><i data-lucide="skip-back" class="w-8 h-8 fill-current"></i></button>
-                    <button id="play-pause-btn" class="w-16 h-16 bg-white text-slate-950 rounded-full flex items-center justify-center shadow-lg active:scale-95">
+                    <button id="play-pause-btn" class="w-16 h-16 bg-white text-slate-950 rounded-full flex items-center justify-center shadow-lg transition-all active-icon">
                         <i id="play-icon" data-lucide="play" class="w-8 h-8 fill-current ml-1"></i>
                     </button>
                     <button id="next-btn" class="p-2 text-white active:scale-90"><i data-lucide="skip-forward" class="w-8 h-8 fill-current"></i></button>
                 </div>
-                <button id="repeat-btn" class="p-2 text-slate-400 active:scale-90"><i id="repeat-icon" data-lucide="repeat" class="w-5 h-5"></i></button>
+                <button id="repeat-btn" class="p-2 text-slate-400 transition-all active:scale-95"><i id="repeat-icon" data-lucide="repeat" class="w-5 h-5"></i></button>
             </div>
             <div class="flex items-center justify-between w-full px-2 gap-4 pb-2">
                 <div class="flex items-center gap-3 flex-1">
@@ -94,38 +100,50 @@
     <audio id="audio-element" preload="auto"></audio>
 
     <script>
-        const songs = [
-            { title: "Sugar In My Tea", artist: "Gemini Lyria", file: "Sugar_In_My_Tea.MP3", cover: "images/Sugar_In_My_Tea.png" },
-            { title: "Token of Victory", artist: "Gemini Lyria", file: "Token_of_Victory.MP3", cover: "images/Token_of_Victory.png" },
-            { title: "Level Up Power Off", artist: "Gemini Lyria", file: "Level_Up_Power_Off.MP3", cover: "images/Level_Up_Power_Off.png" },
-            { title: "Gummy Physics", artist: "Gemini Lyria", file: "Gummy_Physics.mp3", cover: "images/Gummy_Physics.png" },
-            { title: "Gearbox Joyride", artist: "Gemini Lyria", file: "Gearbox_Joyride.mp3", cover: "images/Gearbox_Joyride.png" },
-            { title: "Assembly Line Rush", artist: "Gemini Lyria", file: "Assembly_Line_Rush.mp3", cover: "images/Assembly_Line_Rush.png" },
-            { title: "Last Life Standing", artist: "Gemini Lyria", file: "Last_Life_Standing.mp3", cover: "images/Last_Life_Standing.png" },
-            { title: "Fire in the Glass", artist: "Gemini Lyria", file: "Fire_in_the_Glass.mp3", cover: "images/Fire_in_the_Glass.png" },
-            { title: "星々のくるぶし", artist: "Gemini Lyria", file: "星々のくるぶし.mp3", cover: "images/星々のくるぶし.png" },
-            { title: "Carousel of Candy", artist: "Gemini Lyria", file: "Carousel_of_Candy.mp3", cover: "images/Carousel_of_Candy.png" },
-            { title: "Peach Parfait Parade", artist: "Gemini Lyria", file: "Peach_Parfait_Parade.mp3", cover: "images/Peach_Parfait_Parade.png" },
-            { title: "Coffee and Velocity", artist: "Gemini Lyria", file: "Coffee_and_Velocity.mp3", cover: "images/Coffee_and_Velocity.png" },
-            { title: "Button Mash Ballet", artist: "Gemini Lyria", file: "Button_Mash_Ballet.mp3", cover: "images/Button_Mash_Ballet.png" },
-            { title: "Sugar Coated Sky", artist: "Gemini Lyria", file: "Sugar_Coated_Sky.mp3", cover: "images/Sugar_Coated_Sky.png" },
-            { title: "High Score Morning", artist: "Gemini Lyria", file: "High_Score_Morning.mp3", cover: "images/High_Score_Morning.png" },
-            { title: "Salt Across The Sand", artist: "Gemini Lyria", file: "Salt_Across_The_Sand.mp3", cover: "images/Salt_Across_The_Sand.png" },
-            { title: "Rice cake festival", artist: "Gemini Lyria", file: "Rice cake festival.mp3", cover: "images/Rice cake festival.png" },
-            { title: "The Path of Friendship", artist: "Gemini Lyria", file: "The Path of Friendship.mp3", cover: "images/The Path of Friendship.png" },
-            { title: "Wintertime Shine", artist: "Gemini Lyria", file: "Wintertime Shine.mp3", cover: "images/Wintertime Shine.png" }
+        const allSongs = [
+            { title: "Assembly_Line_Rush", artist: "Gemini Lyria", file: "Assembly_Line_Rush.mp3", cover: "images/Assembly_Line_Rush.png", type: "inst" },
+            { title: "Carousel_of_Candy", artist: "Gemini Lyria", file: "Carousel_of_Candy.mp3", cover: "images/Carousel_of_Candy.png", type: "inst" },
+            { title: "Button_Mash_Ballet", artist: "Gemini Lyria", file: "Button_Mash_Ballet.mp3", cover: "images/Button_Mash_Ballet.png", type: "inst" },
+            { title: "Coffee_and_Velocity", artist: "Gemini Lyria", file: "Coffee_and_Velocity.mp3", cover: "images/Coffee_and_Velocity.png", type: "inst" },
+            { title: "Gearbox_Joyride", artist: "Gemini Lyria", file: "Gearbox_Joyride.mp3", cover: "images/Gearbox_Joyride.png", type: "inst" },
+            { title: "High_Score_Morning", artist: "Gemini Lyria", file: "High_Score_Morning.mp3", cover: "images/High_Score_Morning.png", type: "inst" },
+            { title: "Last_Life_Standing", artist: "Gemini Lyria", file: "Last_Life_Standing.mp3", cover: "images/Last_Life_Standing.png", type: "inst" },
+            { title: "Level_Up_Power_Off", artist: "Gemini Lyria", file: "Level_Up_Power_Off.MP3", cover: "images/Level_Up_Power_Off.png", type: "inst" },
+            { title: "Peach_Parfait_Parade", artist: "Gemini Lyria", file: "Peach_Parfait_Parade.mp3", cover: "images/Peach_Parfait_Parade.png", type: "inst" },
+            { title: "Rice cake festival", artist: "Gemini Lyria", file: "Rice cake festival.mp3", cover: "images/Rice cake festival.png", type: "inst" },
+            { title: "Sugar_Coated_Sky", artist: "Gemini Lyria", file: "Sugar_Coated_Sky.mp3", cover: "images/Sugar_Coated_Sky.png", type: "inst" },
+            { title: "Token_of_Victory", artist: "Gemini Lyria", file: "Token_of_Victory.MP3", cover: "images/Token_of_Victory.png", type: "inst" },
+            { title: "DLC  Dungeon", artist: "Gemini Lyria", file: "DLC  Dungeon.mp3", cover: "images/DLC  Dungeon.png", type: "inst" },
+            { title: "Fire_in_the_Glass", artist: "Gemini Lyria", file: "Fire_in_the_Glass.mp3", cover: "images/Fire_in_the_Glass.png", type: "vocal" },
+            { title: "Gummy_Physics", artist: "Gemini Lyria", file: "Gummy_Physics.mp3", cover: "images/Gummy_Physics.png", type: "vocal" },
+            { title: "Salt_Across_The_Sand", artist: "Gemini Lyria", file: "Salt_Across_The_Sand.mp3", cover: "images/Salt_Across_The_Sand.png", type: "vocal" },
+            { title: "Sugar_In_My_Tea", artist: "Gemini Lyria", file: "Sugar_In_My_Tea.MP3", cover: "images/Sugar_In_My_Tea.png", type: "vocal" },
+            { title: "The Path of Friendship", artist: "Gemini Lyria", file: "The Path of Friendship.mp3", cover: "images/The Path of Friendship.png", type: "vocal" },
+            { title: "Wintertime Shine", artist: "Gemini Lyria", file: "Wintertime Shine.mp3", cover: "images/Wintertime Shine.png", type: "vocal" },
+            { title: "星々のくるぶし", artist: "Gemini Lyria", file: "星々のくるぶし.mp3", cover: "images/星々のくるぶし.png", type: "vocal" },
+            { title: "Supernova", artist: "Gemini Lyria", file: "Supernova.mp3", cover: "images/Supernova.png", type: "vocal" },
+            { title: "Stay Still", artist: "Gemini Lyria", file: "Stay Still.mp3", cover: "images/Stay Still.png", type: "vocal" },
+            { title: "Capital world", artist: "Gemini Lyria", file: "Capital world.mp3", cover: "images/Capital world.png", type: "vocal" }
         ];
 
-        let currentIdx = 0, isPlaying = false, isShuffle = false, repeatMode = 0, lastVolume = 0.8, isSongLoaded = false;
+        let activeTab = 'inst', songs = [], currentIdx = 0, isPlaying = false, isShuffle = false, repeatMode = 0, lastVolume = 0.8, isSongLoaded = false;
         const audio = document.getElementById('audio-element'), playPauseBtn = document.getElementById('play-pause-btn'), playIcon = document.getElementById('play-icon');
         const miniPlayPause = document.getElementById('mini-play-pause'), miniPlayIcon = document.getElementById('mini-play-icon'), seekSlider = document.getElementById('seek-slider');
         const volumeSlider = document.getElementById('volume-slider'), volumeIcon = document.getElementById('volume-icon'), miniPlayer = document.getElementById('mini-player');
 
         function initApp() {
-            renderHomeList();
+            switchTab('inst');
             lucide.createIcons();
-            loadSong(currentIdx);
             setupMediaSession();
+            document.addEventListener('touchmove', (e) => { if (e.target.closest('#home-song-list')) return; e.preventDefault(); }, { passive: false });
+        }
+
+        function switchTab(type) {
+            activeTab = type;
+            document.getElementById('tab-inst').className = type === 'inst' ? 'flex-1 py-2 rounded-xl border tab-active text-sm font-semibold' : 'flex-1 py-2 rounded-xl border border-white/10 text-sm font-semibold';
+            document.getElementById('tab-vocal').className = type === 'vocal' ? 'flex-1 py-2 rounded-xl border tab-active text-sm font-semibold' : 'flex-1 py-2 rounded-xl border border-white/10 text-sm font-semibold';
+            songs = allSongs.filter(s => s.type === type);
+            renderHomeList();
         }
 
         function renderHomeList() {
@@ -202,6 +220,8 @@
             isPlaying = true;
             playIcon.setAttribute('data-lucide', 'pause');
             miniPlayIcon.setAttribute('data-lucide', 'pause');
+            playPauseBtn.classList.remove('active-icon');
+            miniPlayPause.classList.remove('active-icon');
             document.getElementById('album-art').classList.add('scale-105');
             lucide.createIcons();
             if ('mediaSession' in navigator) navigator.mediaSession.playbackState = "playing";
@@ -211,13 +231,21 @@
             isPlaying = false;
             playIcon.setAttribute('data-lucide', 'play');
             miniPlayIcon.setAttribute('data-lucide', 'play');
+            playPauseBtn.classList.add('active-icon');
+            miniPlayPause.classList.add('active-icon');
             document.getElementById('album-art').classList.remove('scale-105');
             lucide.createIcons();
             if ('mediaSession' in navigator) navigator.mediaSession.playbackState = "paused";
         };
 
         function nextSong() {
-            currentIdx = isShuffle ? Math.floor(Math.random() * songs.length) : (currentIdx + 1) % songs.length;
+            if (isShuffle) {
+                let newIdx;
+                do { newIdx = Math.floor(Math.random() * songs.length); } while (newIdx === currentIdx && songs.length > 1);
+                currentIdx = newIdx;
+            } else {
+                currentIdx = (currentIdx + 1) % songs.length;
+            }
             loadSong(currentIdx);
             audio.play();
         }
@@ -266,8 +294,7 @@
 
         audio.onended = () => {
             if (repeatMode === 2) { audio.currentTime = 0; audio.play(); }
-            else if (repeatMode === 1 || currentIdx < songs.length - 1) nextSong();
-            else { isPlaying = false; playIcon.setAttribute('data-lucide', 'play'); miniPlayIcon.setAttribute('data-lucide', 'play'); lucide.createIcons(); }
+            else { nextSong(); }
         };
 
         function formatTime(s) { const m = Math.floor(s / 60), sc = Math.floor(s % 60); return `${m}:${sc < 10 ? '0' : ''}${sc}`; }
