@@ -123,7 +123,8 @@
             { title: "星々のくるぶし", artist: "Gemini Lyria", file: "星々のくるぶし.mp3", cover: "images/星々のくるぶし.png", type: "vocal" },
             { title: "Supernova", artist: "Gemini Lyria", file: "Supernova.mp3", cover: "images/Supernova.png", type: "vocal" },
             { title: "Stay Still", artist: "Gemini Lyria", file: "Stay Still.mp3", cover: "images/Stay Still.png", type: "vocal" },
-            { title: "Capital world", artist: "Gemini Lyria", file: "Capital world.mp3", cover: "images/Capital world.png", type: "vocal" }
+            { title: "Capital world", artist: "Gemini Lyria", file: "Capital world.mp3", cover: "images/Capital world.png", type: "vocal" },
+            { title: "届け_高速Wi_Fi", artist: "Gemini Lyria", file: "届け_高速Wi_Fi.mp3", cover: "images/届け_高速Wi_Fi.png", type: "vocal" }
         ];
 
         let activeTab = 'inst', songs = [], currentIdx = 0, isPlaying = false, isShuffle = false, repeatMode = 0, lastVolume = 0.8, isSongLoaded = false;
@@ -250,6 +251,7 @@
             audio.play();
         }
 
+        // 前の曲
         function prevSong() {
             currentIdx = (currentIdx - 1 + songs.length) % songs.length;
             loadSong(currentIdx);
